@@ -1,0 +1,115 @@
+participants:
+  - name: Developer
+    alias: Developer/Dev Team
+  - name: IDE
+    alias: IDE with SAST
+  - name: SCM
+    alias: SCM with Incremental SAST
+  - name: BuildServer
+    alias: Build Server with Deep SAST
+  - name: StagingEnv
+    alias: Staging Environment
+  - name: ProdEnv
+    alias: Production Environment
+  - name: SecurityTeam
+    alias: Security Team
+
+interactions:
+  - from: Developer
+    to: IDE
+    action: Writes Code
+  - from: IDE
+    to: Developer
+    action: Real-Time SAST Feedback
+
+  - condition: Issues Found by SAST
+    steps:
+      - from: Developer
+        to: IDE
+        action: Address Issues
+      - condition: Issues Beyond Developer's Expertise
+        steps:
+          - from: Developer
+            to: SecurityTeam
+            action: Seeks Guidance
+          - from: SecurityTeam
+            to: Developer
+            action: Provides Remediation Strategy
+
+  - from: Developer
+    to: SCM
+    action: Commits Code
+  - from: SCM
+    to: Developer
+    action: Incremental SAST Feedback
+
+  - condition: Issues Flagged
+    steps:
+      - from: Developer
+        to: SCM
+        action: Resolve Issues
+      - from: SCM
+        to: Developer
+        action: Re-Check
+
+  - from: SCM
+    to: BuildServer
+    action: Initiates Build
+  - from: BuildServer
+    to: SCM
+    action: Deep SAST Scan
+
+  - condition: Build Fails
+    steps:
+      - from: BuildServer
+        to: SecurityTeam
+        action: Raises Ticket
+      - from: SecurityTeam
+        to: Developer
+        action: Conducts Vulnerability Triage
+      - from: Developer
+        to: BuildServer
+        action: Remedies and Rebuilds
+  - condition: Build Succeeds
+    steps:
+      - from: BuildServer
+        to: StagingEnv
+        action: Deploys to Staging
+
+  - from: StagingEnv
+    to: StagingEnv
+    action: Parallel DAST Analysis
+  - from: StagingEnv
+    to: StagingEnv
+    action: IAST Analysis
+
+  - condition: DAST/IAST Findings
+    steps:
+      - from: StagingEnv
+        to: SecurityTeam
+        action: Raises Tickets for Vulnerabilities
+      - from: SecurityTeam
+        to: Developer
+        action: Remediation Required
+      - from: Developer
+        to: StagingEnv
+        action: Applies Fixes
+
+  - from: StagingEnv
+    to: ProdEnv
+    action: Deploys to Production
+  - from: ProdEnv
+    to: ProdEnv
+    action: Monitors with DAST and IAST
+
+  - condition: Issues Detected Post-Deployment
+    steps:
+      - from: ProdEnv
+        to: SecurityTeam
+        action: Notifies Detected Issues
+      - from: SecurityTeam
+        to: Developer
+        action: Determines Impact
+      - from: Developer
+        to: ProdEnv
+        action: Conducts Remediation Measures
